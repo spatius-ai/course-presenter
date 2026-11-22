@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Course presenter</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="assets/website.css">
+<style>
+  /* the page around the partner: centred, with room to breathe */
+  body { margin: 0; background: var(--lab-page, #F5F5F7); }
+  .page { max-width: 1240px; margin: 0 auto; padding: 32px 24px 40px; }
+  .made { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 28px; color: var(--lab-muted, #6E7187); text-decoration: none; }
+  .made img { width: 18px; height: 18px; }
+  @media (max-width: 600px) { .page { padding: 16px 8px 28px; } }
+  /* inside another page (embed.js): that page already has its margins */
+  .framed body { background: transparent; } .framed .page { padding: 0; max-width: none; } .framed .made { margin-top: 16px; }
+</style>
+<script>if (window.parent !== window) document.documentElement.classList.add('framed');</script>
+<style>.below { grid-template-columns: repeat(2, minmax(0, 1fr)); }</style>
+</head>
+<body>
+<div class="spatius-website-theme page">
+<div class="block">
+  <div class="intro">
+    <div>
+      <span class="eyebrow hp-type-eyebrow">Lesson</span>
+      <h1 class="hp-type-feature-lead">Course presenter</h1>
+      <p class="hp-type-body">Your slides, presented by a live presenter, out loud and in your language. Raise your hand at any moment: it stops, answers, points at the exact words on the slide, and carries on where it was.</p>
+    </div>
+    <div class="row"><button class="btn btn-brand hp-type-action" id="start" type="button">Start the lesson</button></div>
+  </div>
+
+  <div class="card room">
+    <div class="setup">
+      <span class="lbl hp-type-label">Language</span>
+      <div class="pills hp-type-label" id="langs"><button data-lang="en" aria-pressed="true">English</button><button data-lang="es" aria-pressed="false">Español</button><button data-lang="zh" aria-pressed="false">中文</button><button data-lang="ar" aria-pressed="false">العربية</button><button data-lang="fr" aria-pressed="false">Français</button></div>
+      <span class="sp"></span>
+      <span class="deckname hp-type-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg><span id="deckName">Sample: Photosynthesis</span></span>
+      <button class="btn btn-secondary hp-type-action upload" id="upload" type="button">Use your own PDF</button>
+      <button class="info-btn" type="button" aria-expanded="false" aria-controls="i-deck" aria-label="About your own deck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></button>
+    </div>
+    <div class="info-box hp-type-card-copy" id="i-deck" hidden style="margin-top:12px">
+      <p><b>Your own deck:</b> export your slides as a PDF (from PowerPoint, Keynote or Google Slides) and pick the file. Up to 20 slides.</p>
+      <p><b>What is sent:</b> only the text on your slides, to write the presenter's words and answer questions. The file itself stays in your browser.</p>
+    </div>
+
+    <div class="stage" id="stage">
+      <div class="slidebox" id="slidebox">
+        <canvas class="slide" id="slide" aria-label="The current slide"></canvas>
+        <div class="marks" id="marks"></div>
+        <span class="num hp-type-mono" id="num">Slide 1</span>
+        <span class="turned" id="turned">Back on slide 1</span>
+        <span class="empty" id="empty">Loading the deck…</span>
+        <form class="askbar" id="askbar">
+          <button class="round mic" id="mic" type="button" aria-label="Speak your question" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5"/></svg></button>
+          <input class="q" id="q" autocomplete="off" placeholder="Ask your question…" aria-label="Your question">
+          <button class="round send" type="submit" aria-label="Ask"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+          <button class="round x" id="lower" type="button" aria-label="Lower your hand and carry on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+        </form>
+        <div class="check" id="check" role="dialog" aria-labelledby="checkQ">
+          <div class="box">
+            <span class="k" id="checkK">Quick check</span>
+            <h3 class="hp-type-card-title" id="checkQ"></h3>
+            <p class="summary hp-type-card-copy" id="checkSum" hidden></p>
+            <div class="opts" id="opts"></div>
+            <p class="explain hp-type-card-copy" id="explain"></p>
+            <div class="row" id="checkRow"></div>
+          </div>
+        </div>
+      </div>
+      <div class="tile">
+        <img class="bg" src="assets/cp/room.webp" alt="">
+        <div class="avatar" id="avatarBox"><img class="still" id="still" src="assets/cp/victor-still.webp" alt="Your presenter"><div id="avatar"></div></div>
+        <span class="status hp-type-mono"><i></i><span id="state">Ready</span></span>
+        <span class="load" id="load">Your presenter is getting ready…</span>
+        <div class="subs" aria-live="polite"><span class="who" id="who">Victor · Presenter</span><span class="line" dir="auto" id="said">Press Start the lesson, and raise your hand whenever you like.</span></div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="ctl" id="prev" type="button" aria-label="Previous slide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <button class="ctl play" id="play" type="button" aria-label="Play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+      <button class="ctl" id="next" type="button" aria-label="Next slide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>
+      <span class="sp"></span>
+      <button class="btn hand-btn hp-type-action" id="hand" type="button" aria-keyshortcuts="h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>Raise your hand</button>
+      <button class="info-btn" type="button" aria-expanded="false" aria-controls="i-hand" aria-label="About Raise your hand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></button>
+    </div>
+    <div class="info-box hp-type-card-copy" id="i-hand" hidden>
+      <p><b>Raise your hand:</b> press the button (or the H key) at any moment. The presenter stops mid-sentence and listens. Say or type your question.</p>
+      <p><b>What happens next:</b> it answers from the slides, highlights the exact words it means (or turns to the slide that has the answer), then carries on from the sentence it stopped in.</p>
+    </div>
+    <p class="note hp-type-label" id="note"></p>
+    <div class="strip" id="strip" aria-label="Slides"></div>
+    <input class="file" id="file" type="file" accept="application/pdf,.pdf" tabindex="-1" aria-hidden="true">
+  </div>
+
+  <div class="below">
+    <div class="card">
+      <span class="label-mono hp-type-mono">Your presenter</span>
+      <div class="faces pick" id="faces" role="group" aria-label="Your presenter">
+        <button type="button" data-face="victor" data-still="assets/cp/victor-still.webp" aria-pressed="true"><span><img src="assets/victor.webp" alt=""></span><em class="hp-type-label">Victor</em></button>
+        <button type="button" data-face="grace" aria-pressed="false"><span><img src="assets/grace.webp" alt=""></span><em class="hp-type-label">Grace</em></button>
+        <button type="button" data-face="julian" aria-pressed="false"><span><img src="assets/face.jpg" alt=""></span><em class="hp-type-label">Julian</em></button>
+        <button type="button" data-face="nadia" aria-pressed="false"><span><img src="assets/nadia.webp" alt=""></span><em class="hp-type-label">Nadia</em></button>
+        <button type="button" data-face="camille" aria-pressed="false"><span><img src="assets/camille.webp" alt=""></span><em class="hp-type-label">Camille</em></button>
+      </div>
+    </div>
+    <div class="card">
+      <span class="label-mono hp-type-mono">How it works</span>
+      <ol class="steps hp-type-card-copy">
+        <li><span class="n hp-type-mono">01</span><span>Use the sample deck, or your own PDF.</span></li>
+        <li><span class="n hp-type-mono">02</span><span>The presenter explains each slide out loud, in your language.</span></li>
+        <li><span class="n hp-type-mono">03</span><span>Raise your hand: it answers and points at the slide, then carries on.</span></li>
+        <li><span class="n hp-type-mono">04</span><span>A quick check every few slides, and a quiz at the end.</span></li>
+      </ol>
+    </div>
+  </div>
+</div>
+<a class="made hp-type-label" href="https://www.spatius.ai" target="_blank" rel="noopener"><img src="assets/spatius-mark.svg" alt="">Made with Spatius avatars</a>
+</div>
+<script type="module" src="./src/main.ts"></script>
+</body>
+</html>
