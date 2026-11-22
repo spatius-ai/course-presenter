@@ -348,6 +348,12 @@ let resizeT = 0;
 addEventListener('resize', () => { clearTimeout(resizeT); resizeT = window.setTimeout(() => { if (deck && st.shown) void display(st.shown); }, 200); });
 
 // ---------- build it (only on the demo page): the download starts with the learner's choices ----------
+// "Build it" at the top of the demo page: jump to the Build it section (when the demo sits inside another page, that page scrolls)
+document.getElementById('goBuild')?.addEventListener('click', () => {
+  const el = document.getElementById('build'); if (!el) return;
+  if (parent !== window) parent.postMessage({ type: 'spatius-scroll', y: el.getBoundingClientRect().top + window.scrollY }, '*');
+  else el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
 $('#download')?.addEventListener('click', (e) => {
   (e.currentTarget as HTMLAnchorElement).href = `api/download?${new URLSearchParams({ lang: st.lang, face: st.face })}`;
   track('download', { lang: st.lang, face: st.face });
